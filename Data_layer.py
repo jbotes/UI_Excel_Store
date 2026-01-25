@@ -25,6 +25,15 @@ class DataLayer():
         for row in self.shFSP.iter_rows(min_row=2, values_only=True):
             data.append(row)
         return data
+    
+    def get_header(self):
+        self.load_data()
+        return [cell.value for cell in self.shFSP[1]]
 
-data = DataLayer()
-pp.pprint(data.get_data())
+if __name__ == "__main__":
+    data = DataLayer()
+    pp.pprint(data.get_data())
+    pp.pprint(data.get_header())
+
+    # 44:00
+    
