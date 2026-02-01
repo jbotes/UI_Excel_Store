@@ -9,6 +9,7 @@ class FormMain:
 
     def __init__(self):
         self.data_manager = Data_layer.DataLayer()
+        self.edit_item_id = None
         self.build_controls()
         self.refresh_tree()
         self.set_mode("add")
@@ -36,19 +37,25 @@ class FormMain:
         self.data_manager.delete_FSP_record(row_index=row_index)
     
     def edit_click(self):
-        print('edit')
+        selection = self.tree.selection()
+        if not selection:
+            messagebox.showerror(message="No item selected")
+            return
+        self.edit_item_id = selection[0]
         self.set_mode('edit')
         self.edit_record()
-        self.refresh_tree()
+        # self.refresh_tree()
     
     def edit_record(self):
-        selection = self.tree.selection() #self.tree.focus()
-        if not selection:
-            messagebox.showerror(message="No item selected. Please select an item")
-            return
-        item_id = selection[0]
         self.empty_controls()
-        self.fill_controls_from_tree(self.tree.item(item_id, 'values'))
+        record = self.tree.item(self.edit_item_id, "values")
+        self.fill_controls_from_tree(record)
+        #selection = self.tree.selection() #self.tree.focus()
+        #if not selection:
+        #    messagebox.showerror(message="No item selected. Please select an item")
+        #    return
+        #item_id = selection[0]
+        #self.fill_controls_from_tree(self.tree.item(item_id, 'values'))
     
     def empty_controls(self):
         self.entry_FSP_Name.delete(0,tk.END)
@@ -76,13 +83,14 @@ class FormMain:
             if self.mode == 'add':
                 self.data_manager.add_FSP_record(self.get_data_from_controls())
             else:
-                selection = self.tree.selection() # self.tree.focus()
-                if not selection:
-                    messagebox.showerror(message="No item selected for update.")
-                    return                
-                item_id = selection[0]
-                row_index = self.tree.index(item_id) #self.tree.index(selection) + 1# we will give this to our data layer
+                if not self.edit_item_id:
+                    messagebox.showerror(message='Edit State Lost')
+                    return
+                
+                row_index = self.tree.index(self.edit_item_id)
                 self.data_manager.update_FSP_record_by_index(row_index=row_index,record=self.get_data_from_controls())
+                self.edit_item_id = None 
+
         except RuntimeError as e:
             messagebox.showerror(message=str(e))
 
@@ -153,7 +161,6 @@ class FormMain:
         self.label_ChangeDate.grid(row=5,column=1)
         self.entry_BDE_ChangeDate.grid(row=5,column=2)
         self.button_add.grid(row=7, column=1)
-
-        
+       
 
 form = FormMain()
