@@ -11,6 +11,7 @@ class FormMain:
         self.data_manager = Data_layer.DataLayer()
         self.build_controls()
         self.refresh_tree()
+        self.set_mode("add")
         self.form_main.mainloop()
 
     def refresh_tree(self):
@@ -36,11 +37,66 @@ class FormMain:
     
     def edit_click(self):
         print('edit')
+        self.set_mode('edit')
+        self.edit_record()
         self.refresh_tree()
+    
+    def edit_record(self):
+        selection = self.tree.selection() #self.tree.focus()
+        if not selection:
+            messagebox.showerror(message="No item selected. Please select an item")
+            return
+        item_id = selection[0]
+        self.empty_controls()
+        self.fill_controls_from_tree(self.tree.item(item_id, 'values'))
+    
+    def empty_controls(self):
+        self.entry_FSP_Name.delete(0,tk.END)
+        self.entry_Current_BDE.delete(0,tk.END)
+        self.entry_BDE_ChangeDate.delete(0,tk.END)
+    
+    def fill_controls_from_tree(self, record):
+        self.entry_FSP_Name.insert(0,record[0])
+        self.entry_Current_BDE.insert(0,record[1])
+        self.entry_BDE_ChangeDate.insert(0,record[3])     
 
     def save_click(self):
-        print('save or add')
-        self.refresh_tree()
+        try:
+            print('save or add')
+            self.save_record()
+            self.empty_controls()
+            self.set_mode("add")
+            self.refresh_tree()
+        except RuntimeError as e:
+            messagebox.showerror(message=str(e))
+
+
+    def save_record(self):
+        try:
+            if self.mode == 'add':
+                self.data_manager.add_FSP_record(self.get_data_from_controls())
+            else:
+                selection = self.tree.selection() # self.tree.focus()
+                if not selection:
+                    messagebox.showerror(message="No item selected for update.")
+                    return                
+                item_id = selection[0]
+                row_index = self.tree.index(item_id) #self.tree.index(selection) + 1# we will give this to our data layer
+                self.data_manager.update_FSP_record_by_index(row_index=row_index,record=self.get_data_from_controls())
+        except RuntimeError as e:
+            messagebox.showerror(message=str(e))
+
+    def get_data_from_controls(self):
+        return [
+            self.entry_FSP_Name.get(),
+            self.entry_Current_BDE.get(),
+            self.entry_Current_BDE.get(),
+            self.entry_BDE_ChangeDate.get()
+        ]
+    
+    def set_mode(self, mode):
+        self.mode = mode
+        self.button_add.config(text='Update' if mode == 'edit' else 'insert')
 
     def build_controls(self):
         self.form_main = tb.Window(themename="superhero") #tk.Tk()
